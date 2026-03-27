@@ -63,6 +63,7 @@ export default function CanvasView() {
     saturate(${adjustments.saturation}%)
     hue-rotate(${adjustments.hue}deg)
     brightness(${100 + adjustments.exposure}%)
+    ${adjustments.sharpness > 0 ? 'url(#sharpness-filter)' : ''}
   `.trim();
 
   // Temperature overlay
@@ -159,6 +160,21 @@ export default function CanvasView() {
 
   return (
     <main className="flex-1 bg-[#09090b] relative flex items-center justify-center overflow-hidden custom-grid-bg">
+      <svg className="hidden">
+        <defs>
+          <filter id="sharpness-filter">
+            <feConvolveMatrix 
+              order="3 3" 
+              preserveAlpha="true" 
+              kernelMatrix={`
+                0 -${adjustments.sharpness / 50} 0 
+                -${adjustments.sharpness / 50} ${1 + 4 * (adjustments.sharpness / 50)} -${adjustments.sharpness / 50} 
+                0 -${adjustments.sharpness / 50} 0
+              `}
+            />
+          </filter>
+        </defs>
+      </svg>
       <style dangerouslySetInnerHTML={{__html: `
         .custom-grid-bg {
           background-size: 40px 40px;

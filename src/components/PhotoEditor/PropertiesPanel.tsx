@@ -25,22 +25,22 @@ export default function PropertiesPanel() {
 
       <div className="space-y-2 overflow-y-auto pb-20 custom-scrollbar pr-2">
         <SliderControl 
-          label="Brightness" min={0} max={200} value={adjustments.brightness} 
+          label="Brilho" min={0} max={200} value={adjustments.brightness} 
           onChange={(val) => updateAdjustment('brightness', val)} 
           onReset={() => handleReset('brightness')}
         />
         <SliderControl 
-          label="Contrast" min={0} max={200} value={adjustments.contrast} 
+          label="Contraste" min={0} max={200} value={adjustments.contrast} 
           onChange={(val) => updateAdjustment('contrast', val)} 
           onReset={() => handleReset('contrast')}
         />
         <SliderControl 
-          label="Saturation" min={0} max={200} value={adjustments.saturation} 
+          label="Saturação" min={0} max={200} value={adjustments.saturation} 
           onChange={(val) => updateAdjustment('saturation', val)} 
           onReset={() => handleReset('saturation')}
         />
         <SliderControl 
-          label="Exposure" min={-100} max={100} value={adjustments.exposure} 
+          label="Exposição" min={-100} max={100} value={adjustments.exposure} 
           onChange={(val) => updateAdjustment('exposure', val)} 
           onReset={() => handleReset('exposure')}
         />
@@ -48,17 +48,17 @@ export default function PropertiesPanel() {
         <div className="border-t border-zinc-800/50 my-6 pt-6"></div>
         
         <SliderControl 
-          label="Temperature" min={-100} max={100} value={adjustments.temp} 
+          label="Temperatura" min={-100} max={100} value={adjustments.temp} 
           onChange={(val) => updateAdjustment('temp', val)} 
           onReset={() => handleReset('temp')}
         />
         <SliderControl 
-          label="Tint" min={-100} max={100} value={adjustments.tint} 
+          label="Tonalidade" min={-100} max={100} value={adjustments.tint} 
           onChange={(val) => updateAdjustment('tint', val)} 
           onReset={() => handleReset('tint')}
         />
         <SliderControl 
-          label="Hue" min={-180} max={180} value={adjustments.hue} 
+          label="Matiz" min={-180} max={180} value={adjustments.hue} 
           onChange={(val) => updateAdjustment('hue', val)} 
           onReset={() => handleReset('hue')}
         />
@@ -66,9 +66,17 @@ export default function PropertiesPanel() {
         <div className="border-t border-zinc-800/50 my-6 pt-6"></div>
 
         <SliderControl 
-          label="Vignette" min={0} max={100} value={adjustments.vignette} 
+          label="Vinheta" min={0} max={100} value={adjustments.vignette} 
           onChange={(val) => updateAdjustment('vignette', val)} 
           onReset={() => handleReset('vignette')}
+        />
+        
+        <div className="border-t border-zinc-800/50 my-6 pt-6"></div>
+
+        <SliderControl 
+          label="Nitidez" min={0} max={100} value={adjustments.sharpness} 
+          onChange={(val) => updateAdjustment('sharpness', val)} 
+          onReset={() => handleReset('sharpness')}
         />
       </div>
     </div>

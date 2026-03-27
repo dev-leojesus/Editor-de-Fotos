@@ -9,6 +9,7 @@ export interface ImageAdjustments {
   temp: number; // -100 to +100, default 0 (blue to amber)
   tint: number; // -100 to +100, default 0 (green to magenta)
   vignette: number; // 0 to 100, default 0
+  sharpness: number; // 0 to 100, default 0
 }
 
 export interface PresetFilter {
@@ -46,4 +47,5 @@ export const defaultAdjustments: ImageAdjustments = {
   temp: 0,
   tint: 0,
   vignette: 0,
+  sharpness: 0,
 };
