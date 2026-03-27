@@ -3,7 +3,6 @@ import { useEditorStore } from './store';
 import { SliderControl } from './SliderControl';
 import { defaultAdjustments } from './types';
 import { RotateCcw, RotateCw, RefreshCcw, Type, Trash, Wand2, Loader2 } from 'lucide-react';
-import { removeBackground, Config } from '@imgly/background-removal';
 
 export default function PropertiesPanel() {
   const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity, cropAspectRatio, setCropAspect, textLayers, selectedTextId, addText, updateText, removeText, setSelectedTextId, image, setImage } = useEditorStore();
@@ -13,9 +12,15 @@ export default function PropertiesPanel() {
     if (!image || isRemovingBg) return;
     setIsRemovingBg(true);
     try {
-      const config: Config = {
+      const config = {
         publicPath: "https://unpkg.com/@imgly/background-removal@1.4.1/dist/"
       };
+      // @ts-ignore
+      const removeBackground = window.imglyRemoveBackground;
+      if (!removeBackground) {
+        throw new Error("Motor de IA não carregado ainda");
+      }
+      
       const blob = await removeBackground(image, config);
       const url = URL.createObjectURL(blob);
       setImage(url);
