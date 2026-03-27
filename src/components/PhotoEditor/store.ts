@@ -7,6 +7,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   rotation: 0,
   crop: null,
   activeTab: 'adjust',
+  filterIntensity: 100,
 
   setImage: (url) => set({ image: url }),
   
@@ -21,7 +22,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     adjustments: {
       ...state.adjustments,
       ...newAdjustments
-    }
+    },
+    filterIntensity: 100
   })),
 
   setRotation: (deg) => set({ rotation: deg }),
@@ -30,7 +32,9 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 
-  resetAdjustments: () => set({ adjustments: { ...defaultAdjustments }, rotation: 0 }),
+  resetAdjustments: () => set({ adjustments: { ...defaultAdjustments }, rotation: 0, filterIntensity: 100 }),
+
+  setFilterIntensity: (val) => set({ filterIntensity: val }),
 
   exportImage: async () => {
     // Canvas export implementation will be handled via an event or ref.

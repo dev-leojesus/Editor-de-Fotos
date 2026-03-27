@@ -5,7 +5,7 @@ import { defaultAdjustments } from './types';
 import { RotateCcw, RotateCw, RefreshCcw } from 'lucide-react';
 
 export default function PropertiesPanel() {
-  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments } = useEditorStore();
+  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity } = useEditorStore();
 
   const handleReset = (key: keyof typeof defaultAdjustments) => {
     updateAdjustment(key, defaultAdjustments[key]);
@@ -146,6 +146,15 @@ export default function PropertiesPanel() {
     return (
       <div className="flex flex-col w-full h-full animate-fade-in">
         <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6 shrink-0">Filtros (20)</h2>
+        
+        <div className="shrink-0 mb-6">
+          <SliderControl 
+            label="Intensidade" min={0} max={100} value={filterIntensity} 
+            onChange={setFilterIntensity} 
+            onReset={() => setFilterIntensity(100)}
+          />
+        </div>
+
         <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
           <div className="grid grid-cols-2 gap-3 pb-8">
             {filters.map(filter => {

@@ -26,6 +26,7 @@ export interface EditorState {
   rotation: number;
   crop: PercentCrop | null;
   activeTab: EditorTab;
+  filterIntensity: number; // 0 to 100, default 100
   
   // Actions
   setImage: (url: string | null) => void;
@@ -35,6 +36,7 @@ export interface EditorState {
   setActiveTab: (tab: EditorTab) => void;
   setCrop: (crop: PercentCrop | null) => void;
   resetAdjustments: () => void;
+  setFilterIntensity: (val: number) => void;
   exportImage: () => Promise<void>;
 }
 

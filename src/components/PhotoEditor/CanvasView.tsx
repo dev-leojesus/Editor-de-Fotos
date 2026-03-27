@@ -7,7 +7,7 @@ import ReactCrop, { type PercentCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css'; // Add this missing import for the UI to work
 
 export default function CanvasView() {
-  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop } = useEditorStore();
+  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity } = useEditorStore();
   const [isDragging, setIsDragging] = useState(false);
   const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -56,25 +56,41 @@ export default function CanvasView() {
     }
   };
 
+  const interpolate = (val: number, def: number) => {
+    return def + (val - def) * (filterIntensity / 100);
+  };
+
+  const adj = {
+    brightness: interpolate(adjustments.brightness, 100),
+    contrast: interpolate(adjustments.contrast, 100),
+    saturation: interpolate(adjustments.saturation, 100),
+    hue: interpolate(adjustments.hue, 0),
+    exposure: interpolate(adjustments.exposure, 0),
+    temp: interpolate(adjustments.temp, 0),
+    tint: interpolate(adjustments.tint, 0),
+    vignette: interpolate(adjustments.vignette, 0),
+    sharpness: interpolate(adjustments.sharpness, 0),
+  };
+
   // Build hybrid CSS filters for realtime preview
   const filterString = `
-    brightness(${adjustments.brightness}%)
-    contrast(${adjustments.contrast}%)
-    saturate(${adjustments.saturation}%)
-    hue-rotate(${adjustments.hue}deg)
-    brightness(${100 + adjustments.exposure}%)
-    ${adjustments.sharpness > 0 ? 'url(#sharpness-filter)' : ''}
+    brightness(${adj.brightness}%)
+    contrast(${adj.contrast}%)
+    saturate(${adj.saturation}%)
+    hue-rotate(${adj.hue}deg)
+    brightness(${100 + adj.exposure}%)
+    ${adj.sharpness > 0 ? 'url(#sharpness-filter)' : ''}
   `.trim();
 
   // Temperature overlay
-  const tempColor = adjustments.temp > 0 
-    ? `rgba(255, 140, 0, ${adjustments.temp / 200})` 
-    : `rgba(0, 130, 255, ${Math.abs(adjustments.temp) / 200})`;
+  const tempColor = adj.temp > 0 
+    ? `rgba(255, 140, 0, ${adj.temp / 200})` 
+    : `rgba(0, 130, 255, ${Math.abs(adj.temp) / 200})`;
 
   // Tint overlay
-  const tintColor = adjustments.tint > 0
-    ? `rgba(255, 0, 255, ${adjustments.tint / 200})`
-    : `rgba(0, 255, 0, ${Math.abs(adjustments.tint) / 200})`;
+  const tintColor = adj.tint > 0
+    ? `rgba(255, 0, 255, ${adj.tint / 200})`
+    : `rgba(0, 255, 0, ${Math.abs(adj.tint) / 200})`;
 
   const exportCanvasImage = () => {
     if (!image) return;
@@ -119,23 +135,23 @@ export default function CanvasView() {
       );
 
       // Overlays
-      if (adjustments.temp !== 0) {
+      if (adj.temp !== 0) {
         ctx.globalCompositeOperation = 'overlay';
         ctx.fillStyle = tempColor;
         ctx.fillRect(-sourceW / 2, -sourceH / 2, sourceW, sourceH);
       }
-      if (adjustments.tint !== 0) {
+      if (adj.tint !== 0) {
         ctx.globalCompositeOperation = 'overlay';
         ctx.fillStyle = tintColor;
         ctx.fillRect(-sourceW / 2, -sourceH / 2, sourceW, sourceH);
       }
 
       // Vignette approximation on canvas
-      if (adjustments.vignette > 0) {
+      if (adj.vignette > 0) {
         ctx.globalCompositeOperation = 'multiply';
         const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(sourceW, sourceH) / 1.5);
         gradient.addColorStop(0, 'rgba(0,0,0,0)');
-        gradient.addColorStop(1, `rgba(0,0,0,${adjustments.vignette / 100})`);
+        gradient.addColorStop(1, `rgba(0,0,0,${adj.vignette / 100})`);
         ctx.fillStyle = gradient;
         ctx.fillRect(-sourceW / 2, -sourceH / 2, sourceW, sourceH);
       }
@@ -167,9 +183,9 @@ export default function CanvasView() {
               order="3 3" 
               preserveAlpha="true" 
               kernelMatrix={`
-                0 -${adjustments.sharpness / 50} 0 
-                -${adjustments.sharpness / 50} ${1 + 4 * (adjustments.sharpness / 50)} -${adjustments.sharpness / 50} 
-                0 -${adjustments.sharpness / 50} 0
+                0 -${adj.sharpness / 50} 0 
+                -${adj.sharpness / 50} ${1 + 4 * (adj.sharpness / 50)} -${adj.sharpness / 50} 
+                0 -${adj.sharpness / 50} 0
               `}
             />
           </filter>
@@ -242,7 +258,7 @@ export default function CanvasView() {
             <div className={`absolute inset-0 mix-blend-overlay pointer-events-none transition-colors duration-75 ${activeTab === 'crop' ? 'opacity-0' : 'opacity-100'}`} style={{ backgroundColor: tempColor }} />
             <div className={`absolute inset-0 mix-blend-overlay pointer-events-none transition-colors duration-75 ${activeTab === 'crop' ? 'opacity-0' : 'opacity-100'}`} style={{ backgroundColor: tintColor }} />
             {/* Vignette Overlay */}
-            <div className={`absolute inset-0 pointer-events-none rounded-sm transition-all duration-75 ${activeTab === 'crop' ? 'opacity-0' : 'opacity-100'}`} style={{ boxShadow: `inset 0 0 ${adjustments.vignette * 3}px rgba(0,0,0,1)` }} />
+            <div className={`absolute inset-0 pointer-events-none rounded-sm transition-all duration-75 ${activeTab === 'crop' ? 'opacity-0' : 'opacity-100'}`} style={{ boxShadow: `inset 0 0 ${adj.vignette * 3}px rgba(0,0,0,1)` }} />
           </div>
         </div>
       )}
