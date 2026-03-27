@@ -234,6 +234,10 @@ export default function CanvasView() {
            
            const pxSize = (t.fontSize * 16) * scaleRatio;
            
+           ctx.save();
+           ctx.translate(tx, ty);
+           ctx.rotate(-rotation * Math.PI / 180);
+
            ctx.font = `${t.fontWeight} ${pxSize}px ${t.fontFamily}`;
            ctx.fillStyle = t.color;
            ctx.textAlign = 'center';
@@ -250,11 +254,13 @@ export default function CanvasView() {
            
            const lines = t.text.split('\n');
            const lineHeight = pxSize * 1.2;
-           const startY = ty - ((lines.length - 1) * lineHeight) / 2;
+           const startY = -((lines.length - 1) * lineHeight) / 2;
            
            lines.forEach((line, index) => {
-             ctx.fillText(line, tx, startY + (index * lineHeight));
+             ctx.fillText(line, 0, startY + (index * lineHeight));
            });
+
+           ctx.restore();
          });
       }
 
@@ -349,7 +355,7 @@ export default function CanvasView() {
           style={{
             left: `${t.x}%`,
             top: `${t.y}%`,
-            transform: 'translate(-50%, -50%)',
+            transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
             color: t.color,
             fontSize: `${t.fontSize}rem`,
             fontFamily: t.fontFamily,
