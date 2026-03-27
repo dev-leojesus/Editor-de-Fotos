@@ -7,9 +7,11 @@ import ReactCrop, { type PercentCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css'; // Add this missing import for the UI to work
 
 export default function CanvasView() {
-  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity, cropAspectRatio, textLayers, selectedTextId } = useEditorStore();
+  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity, cropAspectRatio, textLayers, selectedTextId, updateText, setSelectedTextId } = useEditorStore();
   const [isDragging, setIsDragging] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [draggingTextId, setDraggingTextId] = useState<string | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number, y: number, startX: number, startY: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -264,8 +266,70 @@ export default function CanvasView() {
     };
   };
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>, id: string) => {
+    if (activeTab === 'crop') return;
+    e.stopPropagation();
+    
+    // Select the text and enter elements tab
+    useEditorStore.getState().setActiveTab('elements');
+    setSelectedTextId(id);
+    
+    const textLayer = textLayers.find(t => t.id === id);
+    if (!textLayer) return;
+
+    setDraggingTextId(id);
+    setDragStart({ x: e.clientX, y: e.clientY, startX: textLayer.x, startY: textLayer.y });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingTextId || !dragStart) return;
+    e.stopPropagation();
+
+    const wrapper = document.getElementById('editor-image-wrapper');
+    if (!wrapper) return;
+
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    const rect = wrapper.getBoundingClientRect();
+    
+    let percentDeltaX = 0;
+    let percentDeltaY = 0;
+    const rot = ((rotation % 360) + 360) % 360;
+
+    if (rot === 0) {
+      percentDeltaX = (deltaX / rect.width) * 100;
+      percentDeltaY = (deltaY / rect.height) * 100;
+    } else if (rot === 90) {
+      percentDeltaX = (deltaY / rect.height) * 100;
+      percentDeltaY = (-deltaX / rect.width) * 100;
+    } else if (rot === 180) {
+      percentDeltaX = (-deltaX / rect.width) * 100;
+      percentDeltaY = (-deltaY / rect.height) * 100;
+    } else if (rot === 270) {
+      percentDeltaX = (-deltaY / rect.height) * 100;
+      percentDeltaY = (deltaX / rect.width) * 100;
+    }
+
+    let newX = dragStart.startX + percentDeltaX;
+    let newY = dragStart.startY + percentDeltaY;
+
+    newX = Math.max(0, Math.min(100, newX));
+    newY = Math.max(0, Math.min(100, newY));
+
+    updateText(draggingTextId, { x: newX, y: newY });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (draggingTextId) {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      setDraggingTextId(null);
+      setDragStart(null);
+    }
+  };
+
   const ImgElement = (
-    <div className="relative inline-block max-w-full max-h-[85vh]">
+    <div id="editor-image-wrapper" className="relative inline-block max-w-full max-h-[85vh]">
       <img
         id="editor-image-target"
         src={image!} 
@@ -277,7 +341,11 @@ export default function CanvasView() {
       {textLayers && textLayers.map(t => (
         <div 
           key={t.id}
-          className={`absolute whitespace-pre text-center select-none pointer-events-none transition-all duration-75 ${selectedTextId === t.id ? 'border border-[#ccff00] backdrop-blur-[2px]' : ''}`}
+          onPointerDown={(e) => handlePointerDown(e, t.id)}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className={`absolute whitespace-pre text-center select-none ${activeTab === 'crop' ? 'pointer-events-none' : 'cursor-move'} ${selectedTextId === t.id ? 'border border-[#ccff00] backdrop-blur-[2px]' : ''}`}
           style={{
             left: `${t.x}%`,
             top: `${t.y}%`,
