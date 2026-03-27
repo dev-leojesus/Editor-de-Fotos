@@ -12,18 +12,18 @@ export default function PropertiesPanel() {
   };
 
   const renderAdjustments = () => (
-    <div className="flex flex-col w-full animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100">Adjustments</h2>
+    <div className="flex flex-col w-full h-full animate-fade-in">
+      <div className="flex justify-between items-center mb-6 shrink-0">
+        <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100">Ajustes</h2>
         <button 
           onClick={resetAdjustments}
           className="text-xs flex items-center gap-1 text-zinc-400 hover:text-[#ccff00] transition-colors"
         >
-          <RefreshCcw size={12} /> Reset All
+          <RefreshCcw size={12} /> Redefinir tudo
         </button>
       </div>
 
-      <div className="space-y-2 overflow-y-auto pb-20 custom-scrollbar pr-2">
+      <div className="flex-1 min-h-0 space-y-2 overflow-y-auto pb-20 custom-scrollbar pr-2">
         <SliderControl 
           label="Brilho" min={0} max={200} value={adjustments.brightness} 
           onChange={(val) => updateAdjustment('brightness', val)} 
