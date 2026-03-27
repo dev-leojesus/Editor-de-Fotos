@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditorStore } from './store';
 import { SliderControl } from './SliderControl';
 import { defaultAdjustments } from './types';
-import { RotateCcw, RotateCw, RefreshCcw, Type, Trash } from 'lucide-react';
+import { RotateCcw, RotateCw, RefreshCcw, Type, Trash, Wand2, Loader2 } from 'lucide-react';
+import { removeBackground, Config } from '@imgly/background-removal';
 
 export default function PropertiesPanel() {
-  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity, cropAspectRatio, setCropAspect, textLayers, selectedTextId, addText, updateText, removeText, setSelectedTextId } = useEditorStore();
+  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity, cropAspectRatio, setCropAspect, textLayers, selectedTextId, addText, updateText, removeText, setSelectedTextId, image, setImage } = useEditorStore();
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+
+  const handleRemoveBackground = async () => {
+    if (!image || isRemovingBg) return;
+    setIsRemovingBg(true);
+    try {
+      const config: Config = {
+        publicPath: "https://unpkg.com/@imgly/background-removal@1.4.1/dist/"
+      };
+      const blob = await removeBackground(image, config);
+      const url = URL.createObjectURL(blob);
+      setImage(url);
+    } catch (err) {
+      console.error('Failed to remove background:', err);
+      alert('Erro ao processar inteligência artificial local. Verifique sua conexão.');
+    } finally {
+      setIsRemovingBg(false);
+    }
+  };
 
   const handleReset = (key: keyof typeof defaultAdjustments) => {
     updateAdjustment(key, defaultAdjustments[key]);
@@ -24,6 +44,14 @@ export default function PropertiesPanel() {
       </div>
 
       <div className="flex-1 min-h-0 space-y-2 overflow-y-auto pb-20 custom-scrollbar pr-2">
+        <button 
+          onClick={handleRemoveBackground}
+          disabled={isRemovingBg || !image}
+          className="w-full py-3 mb-6 bg-zinc-100 text-zinc-950 font-bold flex justify-center items-center gap-2 rounded-lg hover:bg-white transition-all uppercase tracking-widest text-[10px] disabled:opacity-50"
+        >
+          {isRemovingBg ? <><Loader2 size={16} className="animate-spin text-zinc-950" /> <span className="text-zinc-950">Magia em Execução...</span></> : <><Wand2 size={16} className="text-zinc-950" /> <span className="text-zinc-950">Remover Fundo (IA)</span></>}
+        </button>
+
         <SliderControl 
           label="Brilho" min={0} max={200} value={adjustments.brightness} 
           onChange={(val) => updateAdjustment('brightness', val)} 
