@@ -223,15 +223,15 @@ export default function CanvasView() {
           </label>
         </div>
       ) : (
-        <div className="relative w-full h-full flex items-center justify-center p-8 group">
+        <div className="relative w-full h-full flex items-center justify-center p-8 group overflow-hidden">
           {/* Zoom Controls */}
           <div className="absolute top-6 right-6 flex items-center gap-1 bg-zinc-950/80 backdrop-blur-md rounded-lg p-1 border border-zinc-800/50 z-50">
-             <button onClick={() => setZoom(z => Math.max(0.1, z - 0.2))} className="p-2 text-zinc-400 hover:text-zinc-100 transition-colors"><ZoomOut size={16}/></button>
-             <span className="text-xs font-mono text-zinc-300 w-12 text-center">{Math.round(zoom * 100)}%</span>
-             <button onClick={() => setZoom(z => Math.min(3, z + 0.2))} className="p-2 text-zinc-400 hover:text-zinc-100 transition-colors"><ZoomIn size={16}/></button>
+             <button type="button" onClick={(e) => { e.preventDefault(); setZoom(z => Math.max(0.1, z - 0.2)); }} className="p-2 text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer"><ZoomOut size={16}/></button>
+             <span className="text-xs font-mono text-zinc-300 w-12 text-center select-none">{Math.round(zoom * 100)}%</span>
+             <button type="button" onClick={(e) => { e.preventDefault(); setZoom(z => Math.min(3, z + 0.2)); }} className="p-2 text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer"><ZoomIn size={16}/></button>
           </div>
 
-          <button onClick={() => { setImage(null); setCrop(null); }} className="absolute top-6 left-6 p-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white z-50 transition-colors">
+          <button type="button" onClick={() => { setImage(null); setCrop(null); }} className="absolute top-6 left-6 p-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white z-50 transition-colors cursor-pointer">
             <X size={16} />
           </button>
 
@@ -241,6 +241,13 @@ export default function CanvasView() {
             style={{ 
               transform: `scale(${zoom}) rotate(${rotation}deg)`,
               transformOrigin: 'center center'
+            }}
+            onWheel={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.1 : -0.1;
+                setZoom(z => Math.max(0.1, Math.min(3, z + delta)));
+              }
             }}
           >
             {activeTab === 'crop' ? (
