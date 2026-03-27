@@ -173,6 +173,9 @@ export default function CanvasView() {
       let sourceW = img.width;
       let sourceH = img.height;
 
+      const screenImg = document.getElementById('editor-image-target') as HTMLImageElement;
+      const scaleRatio = screenImg ? img.width / screenImg.clientWidth : 1;
+
       // Ensure the crop box has actual area (not a tiny click artifact)
       if (crop && crop.width > 2 && crop.height > 2) {
         sourceX = (crop.x * img.width) / 100;
@@ -224,11 +227,12 @@ export default function CanvasView() {
       if (textLayers && textLayers.length > 0) {
          ctx.globalCompositeOperation = 'source-over';
          textLayers.forEach(t => {
-           // position relative to sourceW, sourceH (translated coords: center is 0,0)
            const tx = (t.x / 100) * sourceW - (sourceW / 2);
            const ty = (t.y / 100) * sourceH - (sourceH / 2);
            
-           ctx.font = `${t.fontWeight} ${(t.fontSize / 100) * sourceW}px ${t.fontFamily}`;
+           const pxSize = (t.fontSize * 16) * scaleRatio;
+           
+           ctx.font = `${t.fontWeight} ${pxSize}px ${t.fontFamily}`;
            ctx.fillStyle = t.color;
            ctx.textAlign = 'center';
            ctx.textBaseline = 'middle';
@@ -242,9 +246,8 @@ export default function CanvasView() {
              ctx.shadowColor = 'transparent';
            }
            
-           // Handle multiline text
            const lines = t.text.split('\n');
-           const lineHeight = ((t.fontSize / 100) * sourceW) * 1.2;
+           const lineHeight = pxSize * 1.2;
            const startY = ty - ((lines.length - 1) * lineHeight) / 2;
            
            lines.forEach((line, index) => {
@@ -262,8 +265,9 @@ export default function CanvasView() {
   };
 
   const ImgElement = (
-    <div className="relative inline-block max-w-full max-h-[85vh]" style={{ containerType: 'inline-size' } as React.CSSProperties}>
-      <img 
+    <div className="relative inline-block max-w-full max-h-[85vh]">
+      <img
+        id="editor-image-target"
         src={image!} 
         alt="Workspace" 
         className="max-w-full max-h-[85vh] object-contain transition-all duration-75 block select-none"
@@ -279,7 +283,7 @@ export default function CanvasView() {
             top: `${t.y}%`,
             transform: 'translate(-50%, -50%)',
             color: t.color,
-            fontSize: `${t.fontSize}cqw`,
+            fontSize: `${t.fontSize}rem`,
             fontFamily: t.fontFamily,
             fontWeight: t.fontWeight,
             textShadow: t.shadow ? '0 2px 10px rgba(0,0,0,0.8)' : 'none',
@@ -337,7 +341,7 @@ export default function CanvasView() {
           
           <label className="px-6 py-2.5 bg-zinc-100 text-zinc-950 font-bold uppercase tracking-widest text-[10px] rounded-lg cursor-pointer hover:bg-white transition-colors">
             Browse Files
-            <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+            <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} onClick={(e) => { (e.target as HTMLInputElement).value = ''; }} />
           </label>
         </div>
       ) : (
