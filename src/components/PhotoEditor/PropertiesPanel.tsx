@@ -2,10 +2,10 @@ import React from 'react';
 import { useEditorStore } from './store';
 import { SliderControl } from './SliderControl';
 import { defaultAdjustments } from './types';
-import { RotateCcw, RotateCw, RefreshCcw } from 'lucide-react';
+import { RotateCcw, RotateCw, RefreshCcw, Type, Trash } from 'lucide-react';
 
 export default function PropertiesPanel() {
-  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity, cropAspectRatio, setCropAspect } = useEditorStore();
+  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity, cropAspectRatio, setCropAspect, textLayers, selectedTextId, addText, updateText, removeText, setSelectedTextId } = useEditorStore();
 
   const handleReset = (key: keyof typeof defaultAdjustments) => {
     updateAdjustment(key, defaultAdjustments[key]);
@@ -207,18 +207,81 @@ export default function PropertiesPanel() {
     );
   };
 
-  const renderElements = () => (
-    <div className="flex flex-col w-full animate-fade-in">
-      <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6">Graphics</h2>
-      {/* Placeholder for elements panel */}
-      <div className="border border-dashed border-zinc-800 rounded-xl p-8 text-center bg-zinc-950/50">
-        <div className="w-10 h-10 bg-zinc-900 rounded-full mx-auto mb-3 flex items-center justify-center text-zinc-500">
-           T
+  const renderElements = () => {
+    const selectedText = textLayers.find(t => t.id === selectedTextId);
+    
+    return (
+      <div className="flex flex-col w-full h-full animate-fade-in">
+        <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6 shrink-0">Textos</h2>
+        
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2 space-y-4 pb-20">
+          <button 
+            onClick={() => {
+              addText({
+                id: Date.now().toString(),
+                text: 'NOVO TEXTO',
+                x: 50,
+                y: 50,
+                fontSize: 10,
+                color: '#ffffff',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 'bold',
+                shadow: true
+              });
+            }}
+            className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold flex justify-center items-center gap-2 rounded-lg transition-colors border border-zinc-700"
+          >
+            <Type size={18} /> Adicionar Texto
+          </button>
+
+          {textLayers.length > 0 && (
+            <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 space-y-2">
+              <p className="text-xs text-zinc-400 uppercase tracking-wider mb-2 font-semibold">Camadas de Texto</p>
+              {textLayers.map(t => (
+                <div 
+                  key={t.id} 
+                  className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${selectedTextId === t.id ? 'bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]' : 'bg-zinc-950 border-zinc-800 text-zinc-300 hover:border-zinc-600'}`}
+                  onClick={() => setSelectedTextId(t.id)}
+                >
+                  <span className="truncate text-sm font-bold">{t.text}</span>
+                  <button onClick={(e) => { e.stopPropagation(); removeText(t.id); }} className="text-zinc-500 hover:text-red-500 transition-colors p-1"><Trash size={14}/></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {selectedText && (
+            <div className="bg-zinc-900 rounded-xl p-4 border border-[#ccff00]/20 space-y-4">
+               <div>
+                 <label className="text-xs text-[#ccff00] font-bold uppercase block mb-2">Conteúdo</label>
+                 <textarea 
+                   value={selectedText.text}
+                   onChange={e => updateText(selectedText.id, { text: e.target.value })}
+                   className="w-full bg-zinc-950 border border-zinc-800 rounded p-3 text-white resize-none text-sm outline-none focus:border-[#ccff00]/50"
+                   rows={2}
+                 />
+               </div>
+               
+               <SliderControl label="Tamanho da Fonte" min={1} max={50} value={selectedText.fontSize} onChange={v => updateText(selectedText.id, { fontSize: v })} />
+               
+               <div>
+                  <label className="text-xs text-zinc-400 font-bold uppercase block mb-2">Cor do Texto</label>
+                  <input type="color" value={selectedText.color} onChange={e => updateText(selectedText.id, { color: e.target.value })} className="w-full h-10 bg-zinc-950 rounded cursor-pointer border-0" />
+               </div>
+
+               <div className="pt-2 border-t border-zinc-800">
+                 <p className="text-xs text-zinc-400 font-bold uppercase block mb-4 mt-2">Posição</p>
+                 <div className="space-y-4">
+                   <SliderControl label="Horizontal (X)" min={0} max={100} value={selectedText.x} onChange={v => updateText(selectedText.id, { x: v })} />
+                   <SliderControl label="Vertical (Y)" min={0} max={100} value={selectedText.y} onChange={v => updateText(selectedText.id, { y: v })} />
+                 </div>
+               </div>
+            </div>
+          )}
         </div>
-        <p className="text-xs text-zinc-500">Text & Shapes overlays available in full version.</p>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <aside className="w-[320px] h-full bg-zinc-950 border-l border-zinc-800/50 p-6 flex flex-col shrink-0 z-10 relative shadow-[-20px_0_40px_rgba(0,0,0,0.5)]">

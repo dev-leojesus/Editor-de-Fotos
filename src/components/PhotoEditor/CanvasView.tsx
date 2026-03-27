@@ -7,7 +7,7 @@ import ReactCrop, { type PercentCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css'; // Add this missing import for the UI to work
 
 export default function CanvasView() {
-  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity, cropAspectRatio } = useEditorStore();
+  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity, cropAspectRatio, textLayers, selectedTextId } = useEditorStore();
   const [isDragging, setIsDragging] = useState(false);
   const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -220,6 +220,39 @@ export default function CanvasView() {
         ctx.fillRect(-sourceW / 2, -sourceH / 2, sourceW, sourceH);
       }
 
+      // Draw text layers
+      if (textLayers && textLayers.length > 0) {
+         ctx.globalCompositeOperation = 'source-over';
+         textLayers.forEach(t => {
+           // position relative to sourceW, sourceH (translated coords: center is 0,0)
+           const tx = (t.x / 100) * sourceW - (sourceW / 2);
+           const ty = (t.y / 100) * sourceH - (sourceH / 2);
+           
+           ctx.font = `${t.fontWeight} ${(t.fontSize / 100) * sourceW}px ${t.fontFamily}`;
+           ctx.fillStyle = t.color;
+           ctx.textAlign = 'center';
+           ctx.textBaseline = 'middle';
+           
+           if (t.shadow) {
+             ctx.shadowColor = 'rgba(0,0,0,0.8)';
+             ctx.shadowBlur = 10 * (sourceW / 800);
+             ctx.shadowOffsetX = 0;
+             ctx.shadowOffsetY = 2 * (sourceW / 800);
+           } else {
+             ctx.shadowColor = 'transparent';
+           }
+           
+           // Handle multiline text
+           const lines = t.text.split('\n');
+           const lineHeight = ((t.fontSize / 100) * sourceW) * 1.2;
+           const startY = ty - ((lines.length - 1) * lineHeight) / 2;
+           
+           lines.forEach((line, index) => {
+             ctx.fillText(line, tx, startY + (index * lineHeight));
+           });
+         });
+      }
+
       const exportedData = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       link.download = `edited-photo-${Date.now()}.png`;
@@ -229,13 +262,34 @@ export default function CanvasView() {
   };
 
   const ImgElement = (
-    <img 
-      src={image!} 
-      alt="Workspace" 
-      className="max-w-full max-h-[85vh] object-contain transition-all duration-75 block select-none"
-      style={{ filter: filterString }}
-      draggable={false}
-    />
+    <div className="relative inline-block max-w-full max-h-[85vh]" style={{ containerType: 'inline-size' } as React.CSSProperties}>
+      <img 
+        src={image!} 
+        alt="Workspace" 
+        className="max-w-full max-h-[85vh] object-contain transition-all duration-75 block select-none"
+        style={{ filter: filterString }}
+        draggable={false}
+      />
+      {textLayers && textLayers.map(t => (
+        <div 
+          key={t.id}
+          className={`absolute whitespace-pre text-center select-none pointer-events-none transition-all duration-75 ${selectedTextId === t.id ? 'border border-[#ccff00] backdrop-blur-[2px]' : ''}`}
+          style={{
+            left: `${t.x}%`,
+            top: `${t.y}%`,
+            transform: 'translate(-50%, -50%)',
+            color: t.color,
+            fontSize: `${t.fontSize}cqw`,
+            fontFamily: t.fontFamily,
+            fontWeight: t.fontWeight,
+            textShadow: t.shadow ? '0 2px 10px rgba(0,0,0,0.8)' : 'none',
+            lineHeight: '1.2'
+          }}
+        >
+          {t.text}
+        </div>
+      ))}
+    </div>
   );
 
   return (

@@ -1,5 +1,17 @@
 import { type PercentCrop } from 'react-image-crop';
 
+export interface TextLayer {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  fontSize: number;
+  color: string;
+  fontFamily: string;
+  fontWeight: string;
+  shadow: boolean;
+}
+
 export interface ImageAdjustments {
   brightness: number; // 0 to 200, default 100
   contrast: number; // 0 to 200, default 100
@@ -28,6 +40,8 @@ export interface EditorState {
   cropAspectRatio: number | undefined;
   activeTab: EditorTab;
   filterIntensity: number; // 0 to 100, default 100
+  textLayers: TextLayer[];
+  selectedTextId: string | null;
   
   // Actions
   setImage: (url: string | null) => void;
@@ -39,6 +53,10 @@ export interface EditorState {
   setCropAspect: (aspect: number | undefined) => void;
   resetAdjustments: () => void;
   setFilterIntensity: (val: number) => void;
+  addText: (text: TextLayer) => void;
+  updateText: (id: string, updates: Partial<TextLayer>) => void;
+  removeText: (id: string) => void;
+  setSelectedTextId: (id: string | null) => void;
   exportImage: () => Promise<void>;
 }
 

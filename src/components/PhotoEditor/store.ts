@@ -9,8 +9,10 @@ export const useEditorStore = create<EditorState>((set) => ({
   cropAspectRatio: undefined,
   activeTab: 'adjust',
   filterIntensity: 100,
+  textLayers: [],
+  selectedTextId: null,
 
-  setImage: (url) => set({ image: url }),
+  setImage: (url) => set({ image: url, textLayers: [], selectedTextId: null, crop: null }),
   
   updateAdjustment: (key, value) => set((state) => ({
     adjustments: {
@@ -38,6 +40,16 @@ export const useEditorStore = create<EditorState>((set) => ({
   resetAdjustments: () => set({ adjustments: { ...defaultAdjustments }, rotation: 0, filterIntensity: 100 }),
 
   setFilterIntensity: (val) => set({ filterIntensity: val }),
+  
+  addText: (text) => set((state) => ({ textLayers: [...state.textLayers, text], selectedTextId: text.id })),
+  updateText: (id, updates) => set((state) => ({
+    textLayers: state.textLayers.map(t => t.id === id ? { ...t, ...updates } : t)
+  })),
+  removeText: (id) => set((state) => ({
+    textLayers: state.textLayers.filter(t => t.id !== id),
+    selectedTextId: state.selectedTextId === id ? null : state.selectedTextId
+  })),
+  setSelectedTextId: (id) => set({ selectedTextId: id }),
 
   exportImage: async () => {
     // Canvas export implementation will be handled via an event or ref.
