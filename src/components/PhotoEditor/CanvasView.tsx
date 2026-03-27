@@ -7,7 +7,7 @@ import ReactCrop, { type PercentCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css'; // Add this missing import for the UI to work
 
 export default function CanvasView() {
-  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity } = useEditorStore();
+  const { image, setImage, adjustments, rotation, activeTab, crop, setCrop, filterIntensity, cropAspectRatio } = useEditorStore();
   const [isDragging, setIsDragging] = useState(false);
   const [zoom, setZoom] = useState(1);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,9 +16,35 @@ export default function CanvasView() {
     const handleExport = () => {
       exportCanvasImage();
     };
+
+    const handleApplyCrop = () => {
+      if (!image || !crop || crop.width === 0 || crop.height === 0) return;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = image;
+      img.onload = () => {
+        const sourceX = (crop.x * img.width) / 100;
+        const sourceY = (crop.y * img.height) / 100;
+        const sourceW = (crop.width * img.width) / 100;
+        const sourceH = (crop.height * img.height) / 100;
+        canvas.width = sourceW;
+        canvas.height = sourceH;
+        ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH);
+        setImage(canvas.toDataURL('image/png', 1.0));
+        setCrop(null);
+      };
+    };
+
     window.addEventListener('export-image', handleExport);
-    return () => window.removeEventListener('export-image', handleExport);
-  }, [image, adjustments, rotation, crop]);
+    window.addEventListener('apply-crop', handleApplyCrop);
+    return () => {
+      window.removeEventListener('export-image', handleExport);
+      window.removeEventListener('apply-crop', handleApplyCrop);
+    };
+  }, [image, adjustments, rotation, crop, filterIntensity]);
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -254,6 +280,7 @@ export default function CanvasView() {
               <ReactCrop
                 crop={crop || undefined}
                 onChange={(_, percentCrop) => setCrop(percentCrop)}
+                aspect={cropAspectRatio}
               >
                 {ImgElement}
               </ReactCrop>

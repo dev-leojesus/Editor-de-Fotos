@@ -6,6 +6,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   adjustments: { ...defaultAdjustments },
   rotation: 0,
   crop: null,
+  cropAspectRatio: undefined,
   activeTab: 'adjust',
   filterIntensity: 100,
 
@@ -29,6 +30,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   setRotation: (deg) => set({ rotation: deg }),
   
   setCrop: (crop) => set({ crop }),
+
+  setCropAspect: (aspect) => set({ cropAspectRatio: aspect }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 

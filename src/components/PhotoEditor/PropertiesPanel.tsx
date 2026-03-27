@@ -5,7 +5,7 @@ import { defaultAdjustments } from './types';
 import { RotateCcw, RotateCw, RefreshCcw } from 'lucide-react';
 
 export default function PropertiesPanel() {
-  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity } = useEditorStore();
+  const { activeTab, adjustments, updateAdjustment, rotation, setRotation, resetAdjustments, filterIntensity, setFilterIntensity, cropAspectRatio, setCropAspect } = useEditorStore();
 
   const handleReset = (key: keyof typeof defaultAdjustments) => {
     updateAdjustment(key, defaultAdjustments[key]);
@@ -83,35 +83,49 @@ export default function PropertiesPanel() {
   );
 
   const renderCrop = () => (
-    <div className="flex flex-col w-full animate-fade-in">
-      <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6">Transform & Crop</h2>
+    <div className="flex flex-col w-full h-full animate-fade-in">
+      <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6 shrink-0">Recortar & Girar</h2>
       
-      <div className="mb-6 bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-        <p className="text-xs text-zinc-400 uppercase tracking-wider mb-4 font-semibold">Rotate</p>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setRotation(rotation - 90)}
-            className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg flex justify-center text-zinc-100 transition-colors"
-          >
-            <RotateCcw size={18} />
-          </button>
-          <div className="w-16 text-center font-mono text-[#ccff00] text-sm bg-zinc-950 py-2.5 rounded-lg border border-zinc-800">
-            {rotation}°
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2 space-y-4 pb-20">
+        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+          <p className="text-xs text-zinc-400 uppercase tracking-wider mb-4 font-semibold">Girar Imagem</p>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setRotation(rotation - 90)}
+              className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg flex justify-center text-zinc-100 transition-colors"
+            >
+              <RotateCcw size={18} />
+            </button>
+            <div className="w-16 text-center font-mono text-[#ccff00] text-sm bg-zinc-950 py-2.5 rounded-lg border border-zinc-800">
+              {rotation}°
+            </div>
+            <button 
+              onClick={() => setRotation(rotation + 90)}
+              className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg flex justify-center text-zinc-100 transition-colors"
+            >
+              <RotateCw size={18} />
+            </button>
           </div>
-          <button 
-            onClick={() => setRotation(rotation + 90)}
-            className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg flex justify-center text-zinc-100 transition-colors"
-          >
-            <RotateCw size={18} />
-          </button>
         </div>
-      </div>
-      
-      {/* Crop Info */}
-      <div className="bg-zinc-900 rounded-xl p-4 border border-[#ccff00]/20 mt-4">
-        <p className="text-xs text-[#ccff00] uppercase tracking-wider mb-2 font-bold">Free Crop Active</p>
-        <p className="text-[11px] text-zinc-400">Drag the handles over the image in the canvas area to define your crop boundaries.</p>
-        <p className="text-[10px] text-zinc-500 mt-3 pt-3 border-t border-zinc-800">The crop will be applied automatically when you hit Export.</p>
+        
+        <div className="bg-zinc-900 rounded-xl p-4 border border-[#ccff00]/20">
+          <p className="text-xs text-[#ccff00] uppercase tracking-wider mb-4 font-bold">Formatos de Recorte</p>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <button onClick={() => setCropAspect(undefined)} className={`p-2 text-xs rounded-lg border ${!cropAspectRatio ? 'bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'}`}>Livre</button>
+            <button onClick={() => setCropAspect(1)} className={`p-2 text-xs rounded-lg border ${cropAspectRatio === 1 ? 'bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'}`}>1:1 (Instagram)</button>
+            <button onClick={() => setCropAspect(4/5)} className={`p-2 text-xs rounded-lg border ${cropAspectRatio === 4/5 ? 'bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'}`}>4:5 (Post)</button>
+            <button onClick={() => setCropAspect(9/16)} className={`p-2 text-xs rounded-lg border ${cropAspectRatio === 9/16 ? 'bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'}`}>9:16 (Stories)</button>
+            <button onClick={() => setCropAspect(16/9)} className={`p-2 text-xs col-span-2 rounded-lg border ${cropAspectRatio === 16/9 ? 'bg-[#ccff00]/10 border-[#ccff00] text-[#ccff00]' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white'}`}>16:9 (YouTube / Capa)</button>
+          </div>
+
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('apply-crop'))}
+            className="w-full py-3 bg-[#ccff00] text-black font-bold flex justify-center items-center rounded-lg hover:bg-[#b3e600] transition-colors uppercase tracking-widest text-[10px]"
+          >
+            Aplicar Corte
+          </button>
+          <p className="text-[10px] text-zinc-500 mt-4 text-center border-t border-zinc-800 pt-3">Arraste pela tela para selecionar a área e clique acima para cortar a imagem definitivamente.</p>
+        </div>
       </div>
     </div>
   );
