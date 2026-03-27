@@ -46,6 +46,44 @@ export default function CanvasView() {
     };
   }, [image, adjustments, rotation, crop, filterIntensity]);
 
+  useEffect(() => {
+    if (cropAspectRatio && image) {
+      const img = new Image();
+      img.src = image;
+      img.onload = () => {
+        const imgAspect = img.width / img.height;
+        let cropW = 100;
+        let cropH = 100;
+        
+        if (imgAspect > cropAspectRatio) {
+          cropH = 100;
+          cropW = (cropAspectRatio / imgAspect) * 100;
+        } else {
+          cropW = 100;
+          cropH = (imgAspect / cropAspectRatio) * 100;
+        }
+        
+        // Aplica uma pequena margem pra não colar nas bordas
+        const margin = 0.9;
+        cropW *= margin;
+        cropH *= margin;
+
+        const x = (100 - cropW) / 2;
+        const y = (100 - cropH) / 2;
+
+        setCrop({
+          unit: '%',
+          x,
+          y,
+          width: cropW,
+          height: cropH,
+        });
+      };
+    } else if (cropAspectRatio === undefined) {
+      setCrop(null);
+    }
+  }, [cropAspectRatio, image, setCrop]);
+
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
