@@ -120,26 +120,65 @@ export default function PropertiesPanel() {
   const renderFilters = () => {
     const filters = [
       { id: 'none', name: 'Original', adjustments: defaultAdjustments },
-      { id: 'vintage', name: 'Vintage', adjustments: { ...defaultAdjustments, sepia: 50, contrast: 120, brightness: 90, temp: 20 } },
+      { id: 'vintage', name: 'Vintage', adjustments: { ...defaultAdjustments, contrast: 120, brightness: 90, temp: 30, saturation: 70 } },
       { id: 'bw', name: 'B&W Drama', adjustments: { ...defaultAdjustments, saturation: 0, contrast: 150, exposure: -10 } },
       { id: 'cold', name: 'Cold Mute', adjustments: { ...defaultAdjustments, saturation: 80, temp: -30, brightness: 105 } },
       { id: 'vivid', name: 'Vivid Pop', adjustments: { ...defaultAdjustments, saturation: 140, contrast: 110 } },
+      { id: 'cinematic', name: 'Cinematic', adjustments: { ...defaultAdjustments, saturation: 85, contrast: 130, temp: -10, tint: 10, vignette: 20 } },
+      { id: 'golden', name: 'Golden Hour', adjustments: { ...defaultAdjustments, temp: 40, saturation: 120, brightness: 110, hue: -5 } },
+      { id: 'cyberpunk', name: 'Cyberpunk', adjustments: { ...defaultAdjustments, temp: -40, tint: 50, saturation: 150, contrast: 140 } },
+      { id: 'matte', name: 'Matte Film', adjustments: { ...defaultAdjustments, contrast: 80, brightness: 115, saturation: 80, vignette: 10 } },
+      { id: 'noir', name: 'Noir Crime', adjustments: { ...defaultAdjustments, saturation: 0, contrast: 180, exposure: -20, vignette: 40 } },
+      { id: 'pastel', name: 'Pastel Dream', adjustments: { ...defaultAdjustments, brightness: 120, contrast: 90, saturation: 85, temp: -10 } },
+      { id: 'autumn', name: 'Autumn', adjustments: { ...defaultAdjustments, temp: 50, saturation: 110, tint: 10, contrast: 110 } },
+      { id: 'polaroid', name: 'Polaroid', adjustments: { ...defaultAdjustments, contrast: 90, saturation: 75, temp: 20, tint: -10, brightness: 110 } },
+      { id: 'cyber', name: 'Neon Green', adjustments: { ...defaultAdjustments, tint: -50, temp: -20, saturation: 130, contrast: 120 } },
+      { id: 'desert', name: 'Desert Heat', adjustments: { ...defaultAdjustments, temp: 60, contrast: 130, exposure: 10, saturation: 90 } },
+      { id: 'arctic', name: 'Arctic Ice', adjustments: { ...defaultAdjustments, temp: -60, brightness: 120, contrast: 110, saturation: 90 } },
+      { id: 'urban', name: 'Urban Grit', adjustments: { ...defaultAdjustments, saturation: 60, contrast: 140, sharpness: 50, vignette: 30 } },
+      { id: 'retro', name: 'Retro 80s', adjustments: { ...defaultAdjustments, tint: 40, temp: 20, saturation: 120, contrast: 110 } },
+      { id: 'fade', name: 'Faded Black', adjustments: { ...defaultAdjustments, exposure: 30, contrast: 70, saturation: 80 } },
+      { id: 'sharp', name: 'Ultra Sharp', adjustments: { ...defaultAdjustments, sharpness: 100, contrast: 120, saturation: 110 } },
     ];
-    
+
+    const previewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=250&fit=crop";
+
     return (
-      <div className="flex flex-col w-full animate-fade-in">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6">Presets</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {filters.map(filter => (
-            <button
-              key={filter.id}
-              onClick={() => useEditorStore.getState().setAdjustments(filter.adjustments)}
-              className="aspect-[4/3] bg-zinc-900 border border-zinc-800 hover:border-[#ccff00] transition-colors rounded-xl flex items-end p-3 relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent opacity-80" />
-              <span className="text-xs font-bold relative z-10 group-hover:text-[#ccff00] transition-colors">{filter.name}</span>
-            </button>
-          ))}
+      <div className="flex flex-col w-full h-full animate-fade-in">
+        <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-100 mb-6 shrink-0">Filtros (20)</h2>
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
+          <div className="grid grid-cols-2 gap-3 pb-8">
+            {filters.map(filter => {
+              const adj = filter.adjustments;
+              const cssFilter = `brightness(${adj.brightness}%) contrast(${adj.contrast}%) saturate(${adj.saturation}%) hue-rotate(${adj.hue}deg) brightness(${100 + adj.exposure}%)`;
+              
+              const tempOverlay = adj.temp !== 0 ? (adj.temp > 0 ? `rgba(255, 140, 0, ${adj.temp / 200})` : `rgba(0, 130, 255, ${Math.abs(adj.temp) / 200})`) : 'transparent';
+              const tintOverlay = adj.tint !== 0 ? (adj.tint > 0 ? `rgba(255, 0, 255, ${adj.tint / 200})` : `rgba(0, 255, 0, ${Math.abs(adj.tint) / 200})`) : 'transparent';
+              
+              return (
+                <button
+                  key={filter.id}
+                  onClick={() => useEditorStore.getState().setAdjustments(filter.adjustments)}
+                  className="aspect-[4/3] bg-zinc-900 border border-zinc-800 hover:border-[#ccff00] transition-all rounded-xl flex items-end p-3 relative overflow-hidden group"
+                >
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                    style={{ 
+                      backgroundImage: `url('${previewUrl}')`,
+                      filter: cssFilter
+                    }} 
+                  />
+                  <div className="absolute inset-0 mix-blend-overlay pointer-events-none" style={{ backgroundColor: tempOverlay }} />
+                  <div className="absolute inset-0 mix-blend-overlay pointer-events-none" style={{ backgroundColor: tintOverlay }} />
+                  {adj.vignette > 0 && (
+                    <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: `inset 0 0 ${adj.vignette}px rgba(0,0,0,1)` }} />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent opacity-90" />
+                  <span className="text-[11px] leading-tight font-bold relative z-10 text-zinc-200 group-hover:text-[#ccff00] transition-colors text-left">{filter.name}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
