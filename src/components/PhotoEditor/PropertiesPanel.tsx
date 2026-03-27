@@ -12,14 +12,29 @@ export default function PropertiesPanel() {
     if (!image || isRemovingBg) return;
     setIsRemovingBg(true);
     try {
+      // @ts-ignore
+      if (!window.imglyRemoveBackground) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.innerHTML = `
+            import { removeBackground } from 'https://unpkg.com/@imgly/background-removal@1.4.1/dist/index.mjs';
+            window.imglyRemoveBackground = removeBackground;
+            window.dispatchEvent(new Event('imgly-loaded'));
+          `;
+          window.addEventListener('imgly-loaded', resolve, { once: true });
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      // @ts-ignore
+      const removeBackground = window.imglyRemoveBackground;
+      if (!removeBackground) throw new Error("Motor de IA local não foi injetado pelo módulo.");
+
       const config = {
         publicPath: "https://unpkg.com/@imgly/background-removal@1.4.1/dist/"
       };
-      // @ts-ignore
-      const removeBackground = window.imglyRemoveBackground;
-      if (!removeBackground) {
-        throw new Error("Motor de IA não carregado ainda");
-      }
       
       const blob = await removeBackground(image, config);
       const url = URL.createObjectURL(blob);
